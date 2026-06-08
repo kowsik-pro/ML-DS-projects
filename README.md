@@ -1,7 +1,5 @@
 # ML & DS Projects
 
-A collection of Data Science and Machine Learning projects built while learning from Jose Portilla's ML/DS Udemy course.
-
 ## Projects
 
 | # | Project | Type | Libraries |
