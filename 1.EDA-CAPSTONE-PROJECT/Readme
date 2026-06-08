@@ -1,0 +1,11 @@
+# Fandango Rating Analysis
+
+Exploratory data analysis on Fandango movie ratings to investigate whether Fandango inflates ratings for movies showing in their theaters.
+
+## What I did
+- Compared Fandango ratings vs other platforms
+- Visualized rating distributions
+- Found evidence of rating inflation
+
+## Libraries
+pandas, matplotlib, seaborn
