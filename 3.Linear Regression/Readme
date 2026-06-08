@@ -1,0 +1,23 @@
+# Ames Housing - ElasticNet Regression
+
+End-to-end machine learning project predicting house prices using the Ames Housing dataset.
+
+## What I did
+- Feature engineering and missing value handling
+- Scaled features using StandardScaler
+- Used GridSearchCV to find optimal ElasticNet parameters
+- Compared Ridge, Lasso, and ElasticNet performance
+- Achieved R² of 0.91 on test set
+
+## Best Parameters
+- alpha: 0.1, l1_ratio: 0.9
+
+## Model Comparison
+| Model | R² Score |
+|-------|----------|
+| Ridge | 0.9166 |
+| Lasso | 0.9167 |
+| ElasticNet | 0.9171 |
+
+## Libraries
+pandas, matplotlib, seaborn, scikit-learn
