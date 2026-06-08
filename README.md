@@ -1,0 +1,14 @@
+# ML & DS Projects
+
+A collection of Data Science and Machine Learning projects built while learning from Jose Portilla's ML/DS Udemy course.
+
+## Projects
+
+| # | Project | Type | Libraries |
+|---|---------|------|-----------|
+| 1 | Fandango Rating Analysis | EDA | pandas, matplotlib, seaborn |
+| 2 | IPL Data Analysis | EDA | pandas, matplotlib, seaborn |
+| 3 | Ames Housing - ElasticNet Regression | ML | pandas, matplotlib, seaborn, sklearn |
+
+## Author
+[kowsik-pro](https://github.com/kowsik-pro)
