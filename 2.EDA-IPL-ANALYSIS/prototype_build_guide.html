@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype Build Guide — Medicine Transport System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #f0ede8;
+  --ink: #1a1410;
+  --cream: #faf8f4;
+  --accent: #e85d2f;
+  --accent2: #2d6a4f;
+  --accent3: #1d3557;
+  --muted: #8a7968;
+  --border: #d4cfc8;
+  --foam: #b8d4c8;
+  --circuit: #2d6a4f;
+  --wire-red: #c0392b;
+  --wire-blue: #2980b9;
+  --wire-grn: #27ae60;
+  --wire-blk: #2c3e50;
+  --wire-yel: #f39c12;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 32px 40px 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(36px, 6vw, 72px);
+  line-height: 0.9;
+  letter-spacing: 2px;
+}
+.header-title span { color: var(--accent); }
+.header-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #666;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+.header-badge {
+  background: var(--accent);
+  color: #fff;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 6px 14px;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+/* NAV */
+.nav {
+  background: var(--cream);
+  border-bottom: 2px solid var(--ink);
+  display: flex;
+  overflow-x: auto;
+  padding: 0 40px;
+}
+.nav-btn {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  margin-bottom: -2px;
+}
+.nav-btn:hover { color: var(--ink); }
+.nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* MAIN */
+.main { padding: 40px; max-width: 1300px; margin: 0 auto; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* BOX VISUAL — CSS 3D isometric */
+.box-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 48px;
+}
+
+@media (max-width: 900px) { .box-section { grid-template-columns: 1fr; } }
+
+.iso-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+}
+
+/* Isometric Box */
+.iso-scene {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  transform-style: preserve-3d;
+}
+
+.iso-box {
+  position: relative;
+  width: 220px;
+  height: 180px;
+  transform: rotateX(30deg) rotateY(-45deg);
+  transform-style: preserve-3d;
+  margin: 60px auto;
+  cursor: pointer;
+  transition: transform 0.4s ease;
+}
+.iso-box:hover { transform: rotateX(28deg) rotateY(-50deg) scale(1.02); }
+
+.face {
+  position: absolute;
+  border: 2px solid var(--ink);
+}
+
+/* Front face */
+.face-front {
+  width: 220px;
+  height: 180px;
+  background: #d4ede4;
+  transform: translateZ(100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* Top face */
+.face-top {
+  width: 220px;
+  height: 200px;
+  background: #e8f5f0;
+  transform: rotateX(90deg) translateZ(0px) translateY(-100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Right face */
+.face-right {
+  width: 200px;
+  height: 180px;
+  background: #b8d4c8;
+  transform: rotateY(90deg) translateZ(220px) translateX(-100px);
+}
+
+/* LID */
+.face-lid {
+  width: 220px;
+  height: 200px;
+  background: linear-gradient(135deg, #f0faf6 0%, #d4ede4 100%);
+  transform: rotateX(90deg) translateZ(180px) translateY(-100px);
+  border: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue';
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--accent2);
+  transform-origin: top;
+}
+
+/* Sensors inside front face */
+.sensor-dot {
+  position: absolute;
+  border-radius: 3px;
+  border: 1.5px solid var(--ink);
+  font-size: 7px;
+  font-family: 'Space Mono';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sensor-dot:hover { transform: scale(1.2); z-index: 10; }
+
+/* Component callouts */
+.callout-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: center;
+}
+
+.callout {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 4px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.callout:hover { border-left-color: var(--accent2); background: #fff; transform: translateX(4px); }
+.callout.type-sensor { border-left-color: var(--accent2); }
+.callout.type-control { border-left-color: var(--accent3); }
+.callout.type-output { border-left-color: var(--accent); }
+.callout.type-unique { border-left-color: #8b5cf6; }
+
+.callout-icon {
+  width: 36px; height: 36px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.type-sensor .callout-icon { background: rgba(45,106,79,0.1); }
+.type-control .callout-icon { background: rgba(29,53,87,0.1); }
+.type-output .callout-icon { background: rgba(232,93,47,0.1); }
+.type-unique .callout-icon { background: rgba(139,92,246,0.1); }
+
+.callout-text h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--ink);
+}
+.callout-text p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* ---- STEP-BY-STEP BUILD ---- */
+.build-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.build-step {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 0;
+  position: relative;
+}
+
+.build-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 40px;
+  top: 80px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.step-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  z-index: 1;
+}
+
+.step-circle {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue';
+  font-size: 22px;
+  color: var(--ink);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.build-step:hover .step-circle {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.step-content {
+  padding: 20px 20px 32px 24px;
+  border-left: 2px solid var(--border);
+  margin-left: -1px;
+}
+
+.step-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.step-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 1px;
+  color: var(--ink);
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.step-body {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.step-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tip {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+.tip-icon { flex-shrink: 0; }
+
+.step-visual {
+  margin-top: 16px;
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Box top-down schematic */
+.topdown {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  aspect-ratio: 4/3;
+  background: #e8f5f0;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  margin: 0 auto;
+}
+
+.td-label {
+  position: absolute;
+  font-family: 'Space Mono';
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  background: var(--ink);
+  color: #fff;
+  padding: 2px 5px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.td-comp {
+  position: absolute;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono';
+  font-size: 7px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.td-comp:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+.td-esp { background: #1d3557; color: #fff; width: 80px; height: 50px; left: 50%; top: 50%; transform: translate(-50%,-50%); }
+.td-sht { background: #2d6a4f; color: #fff; width: 44px; height: 28px; left: 10%; top: 12%; }
+.td-mpu { background: #2d6a4f; color: #fff; width: 44px; height: 28px; left: 10%; top: 38%; }
+.td-tsl { background: #2d6a4f; color: #fff; width: 44px; height: 28px; left: 10%; top: 64%; }
+.td-bmp { background: #2d6a4f; color: #fff; width: 44px; height: 28px; right: 10%; top: 12%; }
+.td-mq2 { background: #c0392b; color: #fff; width: 44px; height: 28px; right: 10%; top: 38%; }
+.td-max { background: #8b5cf6; color: #fff; width: 44px; height: 28px; right: 10%; top: 64%; }
+.td-rfid { background: #f39c12; color: #fff; width: 52px; height: 28px; left: 50%; bottom: 8%; transform: translateX(-50%); }
+.td-oled { background: #333; color: #0ff; width: 52px; height: 24px; left: 50%; top: 6%; transform: translateX(-50%); }
+.td-sd { background: #666; color: #fff; width: 38px; height: 24px; left: 30%; bottom: 12%; }
+.td-ina { background: #2980b9; color: #fff; width: 38px; height: 24px; right: 28%; bottom: 12%; }
+.td-leds { display:flex; gap:3px; position:absolute; bottom:6%; left:8%; }
+.td-led { width:14px; height:14px; border-radius:50%; border:2px solid var(--ink); }
+
+/* Wire lines SVG */
+.wire-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+/* BUY LIST */
+.buy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.buy-table th {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 10px 14px;
+  text-align: left;
+  font-family: 'Space Mono';
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.buy-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.buy-table tr:hover td { background: var(--cream); }
+.buy-table .comp-name { font-weight: 600; color: var(--ink); }
+.buy-table .buy-from { font-size: 11px; color: var(--accent2); font-family: 'Space Mono'; }
+.buy-table .price-col { font-weight: 700; color: var(--accent); font-family: 'Space Mono'; }
+.buy-table .search-tag {
+  font-size: 10px;
+  background: #f0ede8;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-family: 'Space Mono';
+  color: var(--muted);
+}
+.total-row td {
+  font-weight: 700;
+  font-family: 'Space Mono';
+  border-top: 2px solid var(--ink);
+  font-size: 13px;
+  color: var(--ink);
+}
+.total-row .price-col { color: var(--accent); font-size: 16px; }
+
+/* SECTION LABEL */
+.sec-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--ink);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sec-label::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: var(--ink);
+}
+
+/* WHAT IT LOOKS LIKE section */
+.looks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+@media (max-width: 700px) { .looks-grid { grid-template-columns: 1fr; } }
+
+.look-card {
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.look-card-header {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 10px 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.look-card-body {
+  padding: 20px;
+  position: relative;
+}
+
+/* Front Panel Drawing */
+.front-panel {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #c8e6da;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* lid hinge */
+.lid-strip {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 14px;
+  background: #8ab8a8;
+  border-bottom: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono';
+  font-size: 7px;
+  letter-spacing: 2px;
+  color: var(--ink);
+}
+
+.fp-label {
+  position: absolute;
+  font-family: 'Space Mono';
+  font-size: 7px;
+  font-weight: 700;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+/* Breadboard inside */
+.breadboard {
+  position: absolute;
+  background: #fff;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  bottom: 18%;
+  left: 8%;
+  width: 35%;
+  height: 28%;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 1px;
+  padding: 3px;
+}
+.bb-hole {
+  background: #ccc;
+  border-radius: 50%;
+  border: 0.5px solid #999;
+}
+.bb-hole.used { background: #2d6a4f; }
+
+/* ESP32 chip drawing */
+.esp32-chip {
+  position: absolute;
+  background: #1d3557;
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  bottom: 18%;
+  right: 8%;
+  width: 28%;
+  height: 36%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #4af;
+  font-family: 'Space Mono';
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Pins on ESP32 */
+.pin-row {
+  display: flex;
+  gap: 2px;
+  position: absolute;
+}
+.esp-pin {
+  width: 3px;
+  height: 8px;
+  background: #c0a060;
+  border-radius: 1px;
+}
+
+/* OLED display */
+.oled-screen {
+  position: absolute;
+  background: #001;
+  border: 2px solid var(--ink);
+  border-radius: 3px;
+  top: 18%;
+  left: 8%;
+  width: 22%;
+  height: 14%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0ff;
+  font-family: 'Space Mono';
+  font-size: 6px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Sensor modules */
+.sensor-module {
+  position: absolute;
+  border: 1.5px solid var(--ink);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono';
+  font-size: 6px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* LEDs */
+.led-row {
+  position: absolute;
+  display: flex;
+  gap: 6px;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.led-bulb {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* air holes */
+.air-holes {
+  position: absolute;
+  top: 18%;
+  right: 6%;
+  display: grid;
+  grid-template-columns: repeat(3, 8px);
+  gap: 4px;
+}
+.air-hole {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--ink);
+  opacity: 0.3;
+}
+
+/* Power bank */
+.powerbank {
+  position: absolute;
+  background: #444;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30%;
+  height: 10%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'Space Mono';
+  font-size: 7px;
+  letter-spacing: 1px;
+  gap: 4px;
+}
+.pb-led { width: 6px; height: 6px; border-radius: 50%; background: #0f0; box-shadow: 0 0 4px #0f0; }
+
+/* Wires */
+.wire {
+  position: absolute;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Info callouts overlay */
+.callout-arrow {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Space Mono';
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* SIDE VIEW */
+.side-view {
+  width: 100%;
+  aspect-ratio: 3/2;
+  background: #e0ede8;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Annotated labels */
+.annot {
+  position: absolute;
+  font-family: 'Space Mono';
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* dimension lines */
+.dim-line {
+  position: absolute;
+  background: var(--ink);
+  opacity: 0.4;
+}
+
+/* ---- PLACEMENT GUIDE ---- */
+.placement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+.place-card {
+  background: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.place-card-top {
+  padding: 10px 14px;
+  font-family: 'Bebas Neue';
+  font-size: 18px;
+  letter-spacing: 1px;
+  border-bottom: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.place-zone {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+}
+.zone-A { background: var(--accent2); }
+.zone-B { background: var(--accent3); }
+.zone-C { background: var(--accent); }
+.zone-D { background: #8b5cf6; }
+.zone-E { background: #f39c12; }
+
+.place-card-body {
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.place-card-body strong { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">HOW TO<br><span>BUILD IT</span></div>
+    <div class="header-sub">Smart Medicine Transport Monitor — Physical Prototype Guide</div>
+  </div>
+  <div class="header-badge">EPICS 2024</div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="switchTab('looks')">What It Looks Like</button>
+  <button class="nav-btn" onclick="switchTab('steps')">Build Steps</button>
+  <button class="nav-btn" onclick="switchTab('placement')">Component Placement</button>
+  <button class="nav-btn" onclick="switchTab('buy')">Where to Buy</button>
+</nav>
+
+<div class="main">
+
+<!-- ============== LOOKS LIKE ============== -->
+<div id="tab-looks" class="panel active">
+
+  <div class="sec-label">The Container — What to Use</div>
+
+  <div style="background:#fff3cd;border:2px solid #f39c12;border-radius:4px;padding:16px 20px;margin-bottom:28px;font-size:13px;line-height:1.7;">
+    <strong>Use a large thermocol (expanded polystyrene / EPS) box</strong> — the kind used for fish transport or medicine cold storage. Size: roughly <strong>40cm × 30cm × 25cm</strong>. Cost: ₹80–150 from any vegetable market or packaging store. DO NOT use cardboard (no insulation) or hard plastic (hard to drill holes). Thermocol = perfect prototype medicine container.
+  </div>
+
+  <div class="looks-grid">
+    <!-- FRONT VIEW (inside of lid open) -->
+    <div class="look-card">
+      <div class="look-card-header">📦 Inside View — Lid Open</div>
+      <div class="look-card-body">
+
+        <div class="front-panel">
+          <div class="lid-strip">▲ LID HINGE (top edge)</div>
+
+          <!-- OLED -->
+          <div class="oled-screen">
+            <div>T:25.3°C</div>
+            <div>H:62% OK</div>
+          </div>
+          <div class="fp-label" style="top:18%;left:8%;margin-top:-12px;">OLED DISPLAY</div>
+
+          <!-- Breadboard -->
+          <div class="breadboard">
+            <div class="bb-hole used"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div>
+            <div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div>
+            <div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div>
+            <div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div>
+            <div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole used"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div><div class="bb-hole"></div>
+          </div>
+          <div class="fp-label" style="bottom:48%;left:8%;margin-bottom:-10px;">BREADBOARD</div>
+
+          <!-- ESP32 -->
+          <div class="esp32-chip">
+            <div class="pin-row" style="top:-6px;left:4px;right:4px;justify-content:space-around;">
+              <div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div>
+            </div>
+            <div style="font-size:9px;letter-spacing:1px;">ESP32</div>
+            <div style="font-size:6px;color:#8af;">DevKit V1</div>
+            <div class="pin-row" style="bottom:-6px;left:4px;right:4px;justify-content:space-around;">
+              <div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div>
+            </div>
+          </div>
+          <div class="fp-label" style="bottom:55%;right:8%;margin-bottom:-10px;">ESP32</div>
+
+          <!-- Sensor modules -->
+          <div class="sensor-module" style="background:#d4edda;top:33%;left:8%;width:16%;height:10%;">SHT40<br>Temp</div>
+          <div class="sensor-module" style="background:#d4edda;top:46%;left:8%;width:16%;height:10%;">MPU<br>6050</div>
+          <div class="sensor-module" style="background:#d4edda;top:59%;left:8%;width:16%;height:10%;">TSL<br>2591</div>
+          <div class="sensor-module" style="background:#cce5ff;top:33%;right:8%;width:16%;height:10%;">BMP<br>280</div>
+          <div class="sensor-module" style="background:#f8d7da;top:46%;right:8%;width:16%;height:10%;">MQ-2<br>Gas</div>
+          <div class="sensor-module" style="background:#e2d9f3;top:59%;right:8%;width:16%;height:10%;">MAX<br>30102</div>
+          <div class="sensor-module" style="background:#fff3cd;top:18%;left:35%;width:16%;height:10%;">RC522<br>RFID</div>
+          <div class="sensor-module" style="background:#ccc;top:18%;right:28%;width:14%;height:10%;color:#fff;background:#555;">SD<br>Card</div>
+          <div class="sensor-module" style="background:#cce5ff;top:33%;right:28%;width:14%;height:10%;">INA<br>219</div>
+
+          <!-- Air holes -->
+          <div class="air-holes">
+            <div class="air-hole"></div><div class="air-hole"></div><div class="air-hole"></div>
+            <div class="air-hole"></div><div class="air-hole"></div><div class="air-hole"></div>
+            <div class="air-hole"></div><div class="air-hole"></div><div class="air-hole"></div>
+          </div>
+          <div class="fp-label" style="top:20%;right:2%;color:#000;background:rgba(255,255,255,0.8);">AIR HOLES</div>
+
+          <!-- LEDs -->
+          <div class="led-row">
+            <div class="led-bulb" style="color:#e74c3c;background:#e74c3c;"></div>
+            <div class="led-bulb" style="color:#f1c40f;background:#f1c40f;"></div>
+            <div class="led-bulb" style="color:#27ae60;background:#27ae60;"></div>
+          </div>
+          <div class="fp-label" style="bottom:4%;left:50%;transform:translateX(-80%);margin-bottom:18px;">LEDs</div>
+
+          <!-- Buzzer -->
+          <div class="sensor-module" style="background:#888;width:30px;height:30px;border-radius:50%;bottom:5%;left:20%;color:#fff;">BZR</div>
+
+          <!-- Power bank -->
+          <div class="powerbank">
+            <div class="pb-led"></div>
+            <span>POWER BANK</span>
+          </div>
+
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:10px;font-family:'Space Mono';">All components mounted on inner wall of thermocol box using double-sided tape or hot glue.</p>
+      </div>
+    </div>
+
+    <!-- SIDE PROFILE -->
+    <div class="look-card">
+      <div class="look-card-header">📐 Side Profile + Dimensions</div>
+      <div class="look-card-body">
+        <div class="side-view">
+
+          <!-- box outline -->
+          <div style="position:absolute;left:10%;right:10%;top:15%;bottom:20%;border:3px solid var(--ink);background:#c8e6da;border-radius:6px;"></div>
+
+          <!-- lid -->
+          <div style="position:absolute;left:10%;right:10%;top:5%;height:12%;border:3px solid var(--ink);background:#e0f5ec;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono';font-size:9px;font-weight:700;color:var(--ink);letter-spacing:1px;">THERMOCOL LID</div>
+
+          <!-- foam wall indicator -->
+          <div style="position:absolute;left:10%;width:5%;top:15%;bottom:20%;background:repeating-linear-gradient(45deg,#8ab8a8,#8ab8a8 2px,#c8e6da 2px,#c8e6da 6px);border-right:2px solid var(--ink);"></div>
+          <div style="position:absolute;right:10%;width:5%;top:15%;bottom:20%;background:repeating-linear-gradient(45deg,#8ab8a8,#8ab8a8 2px,#c8e6da 2px,#c8e6da 6px);border-left:2px solid var(--ink);"></div>
+
+          <!-- sensors on left wall -->
+          <div class="annot" style="left:16%;top:20%;font-size:7px;">SHT40</div>
+          <div class="annot" style="left:16%;top:30%;font-size:7px;background:var(--accent3);">MPU6050</div>
+          <div class="annot" style="left:16%;top:40%;font-size:7px;background:var(--accent2);">TSL2591</div>
+
+          <!-- ESP32 center -->
+          <div style="position:absolute;left:35%;right:35%;top:45%;height:22%;background:#1d3557;border:2px solid var(--ink);border-radius:4px;display:flex;align-items:center;justify-content:center;color:#4af;font-family:'Space Mono';font-size:8px;font-weight:700;">ESP32</div>
+
+          <!-- breadboard -->
+          <div style="position:absolute;left:20%;width:30%;top:70%;height:12%;background:#fff;border:2px solid var(--ink);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono';font-size:7px;color:#666;">BREADBOARD</div>
+
+          <!-- power bank bottom -->
+          <div style="position:absolute;left:35%;right:18%;bottom:22%;height:10%;background:#444;border:2px solid var(--ink);border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Space Mono';font-size:7px;">POWER BANK</div>
+
+          <!-- air inlet top right -->
+          <div style="position:absolute;right:12%;top:16%;width:40px;height:12px;background:var(--ink);border-radius:2px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Space Mono';font-size:6px;">AIR IN</div>
+
+          <!-- dimension: width -->
+          <div style="position:absolute;left:10%;right:10%;bottom:10%;height:2px;background:var(--muted);"></div>
+          <div class="annot" style="bottom:5%;left:50%;transform:translateX(-50%);background:var(--muted);">40 cm WIDTH</div>
+
+          <!-- dimension: height -->
+          <div style="position:absolute;right:3%;top:15%;bottom:20%;width:2px;background:var(--muted);"></div>
+          <div class="annot" style="right:0;top:50%;transform:translateY(-50%) rotate(90deg);transform-origin:center;background:var(--muted);">25 cm</div>
+
+          <!-- OLED -->
+          <div style="position:absolute;right:16%;top:25%;width:50px;height:22px;background:#001;border:2px solid var(--ink);border-radius:2px;display:flex;align-items:center;justify-content:center;color:#0ff;font-family:'Space Mono';font-size:6px;">OLED</div>
+
+          <!-- LEDs buzzer -->
+          <div style="position:absolute;right:16%;top:50%;display:flex;gap:4px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:#e74c3c;border:1px solid var(--ink);box-shadow:0 0 4px #e74c3c;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:#f1c40f;border:1px solid var(--ink);box-shadow:0 0 4px #f1c40f;"></div>
+            <div style="width:10px;height:10px;border-radius:50%;background:#27ae60;border:1px solid var(--ink);box-shadow:0 0 4px #27ae60;"></div>
+          </div>
+          <div class="annot" style="right:14%;top:62%;font-size:6px;background:#555;">LEDs</div>
+
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:10px;font-family:'Space Mono';">Foam walls = natural insulation. Sensors on inner walls. ESP32 + breadboard on base. Air inlet at top for demo simulations.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison: which box to use -->
+  <div class="sec-label">Which Box Should You Use?</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:40px;">
+
+    <div style="background:#d4edda;border:2px solid var(--accent2);border-radius:4px;padding:18px;">
+      <div style="font-family:'Bebas Neue';font-size:22px;color:var(--accent2);margin-bottom:6px;">✓ THERMOCOL BOX</div>
+      <div style="font-size:12px;line-height:1.7;color:#1a4a30;">Best choice. Naturally insulated. Easy to drill holes with a knife. Cheap (₹80–150). Looks exactly like real medicine transport. Available at vegetable markets, fish shops, packaging stores.</div>
+      <div style="margin-top:10px;font-family:'Space Mono';font-size:10px;color:var(--accent2);">SIZE: 40×30×25 cm</div>
+    </div>
+
+    <div style="background:#fff3cd;border:2px solid #f39c12;border-radius:4px;padding:18px;">
+      <div style="font-family:'Bebas Neue';font-size:22px;color:#e67e22;margin-bottom:6px;">~ PLASTIC CONTAINER</div>
+      <div style="font-size:12px;line-height:1.7;color:#7a5300;">Works but not ideal. No insulation. Harder to drill cleanly. Use only if thermocol unavailable. A large Tupperware-type box with lid works. Need to add foam padding inside.</div>
+      <div style="margin-top:10px;font-family:'Space Mono';font-size:10px;color:#e67e22;">SIZE: 35×25×20 cm+</div>
+    </div>
+
+    <div style="background:#f8d7da;border:2px solid #c0392b;border-radius:4px;padding:18px;">
+      <div style="font-family:'Bebas Neue';font-size:22px;color:#c0392b;margin-bottom:6px;">✗ CARDBOARD BOX</div>
+      <div style="font-size:12px;line-height:1.7;color:#5a1a1a;">Don't use. No insulation = can't demonstrate temperature control. Gets soggy with humidity tests. Falls apart during vibration demo. Doesn't look professional.</div>
+      <div style="margin-top:10px;font-family:'Space Mono';font-size:10px;color:#c0392b;">NOT RECOMMENDED</div>
+    </div>
+
+    <div style="background:#e2d9f3;border:2px solid #8b5cf6;border-radius:4px;padding:18px;">
+      <div style="font-family:'Bebas Neue';font-size:22px;color:#6d28d9;margin-bottom:6px;">★ PRO UPGRADE</div>
+      <div style="font-size:12px;line-height:1.7;color:#3b1a6a;">Get a medical-grade foam vaccine carrier box (used for immunization drives) — available from pharmacy suppliers or NRHM stores. Pre-made, professional, real use case. Impresses judges instantly.</div>
+      <div style="margin-top:10px;font-family:'Space Mono';font-size:10px;color:#6d28d9;">MOST IMPRESSIVE</div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============== BUILD STEPS ============== -->
+<div id="tab-steps" class="panel">
+  <div class="sec-label">Step by Step Assembly</div>
+  <div class="build-steps">
+
+    <div class="build-step">
+      <div class="step-num"><div class="step-circle">1</div></div>
+      <div class="step-content">
+        <div class="step-tag">Day 1 — Hardware</div>
+        <div class="step-title">Prepare the Container</div>
+        <div class="step-body">Get a large thermocol box (~40×30×25 cm). Cut or melt 3 holes: one on the top for a flexible hose (air inlet for hot/humid air injection during demo), one on the side for wire routing, one small hole for the RFID antenna to scan from outside.</div>
+        <div class="step-tips">
+          <div class="tip"><span class="tip-icon">🔧</span>Use a soldering iron tip or hot knife to cut clean holes in thermocol — don't use scissors.</div>
+          <div class="tip"><span class="tip-icon">📏</span>Mark all hole positions with a marker before cutting. Measure twice.</div>
+          <div class="tip"><span class="tip-icon">🌬️</span>The air inlet should fit a flexible dryer hose or PVC pipe — used to blow hot air from a hair dryer during temperature simulation demo.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="build-step">
+      <div class="step-num"><div class="step-circle">2</div></div>
+      <div class="step-content">
+        <div class="step-tag">Day 1 — Hardware</div>
+        <div class="step-title">Mount Sensors on Inner Walls</div>
+        <div class="step-body">Use double-sided foam tape or hot glue to fix sensor modules to the inner walls of the box. Left wall: SHT40, MPU6050, TSL2591. Right wall: BMP280, MQ-2, MAX30102. Top inner face: RFID RC522 (near the hole). Keep wires routed along the walls neatly using tape.</div>
+        <div class="step-tips">
+          <div class="tip"><span class="tip-icon">📍</span>SHT40 must be near center of the box for accurate ambient reading — not right next to the air inlet hole.</div>
+          <div class="tip"><span class="tip-icon">💡</span>TSL2591 should face the lid opening direction so it detects light when lid is opened.</div>
+          <div class="tip"><span class="tip-icon">⚡</span>MQ-2 needs warmup time (~2 min) before accurate readings — note this in your demo script.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="build-step">
+      <div class="step-num"><div class="step-circle">3</div></div>
+      <div class="step-content">
+        <div class="step-tag">Day 1-2 — Hardware</div>
+        <div class="step-title">Set Up ESP32 + Breadboard on Base</div>
+        <div class="step-body">Place the breadboard on the base of the box (foam-safe tape). Mount ESP32 on the breadboard. Connect all I2C sensors first — they all share GPIO 21 (SDA) and GPIO 22 (SCL), so run a common I2C bus line along the inner walls. Then add SPI connections for RC522 and SD card module.</div>
+
+        <div class="step-visual">
+          <!-- Top-down schematic -->
+          <div style="font-family:'Space Mono';font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;">Top-Down Component Layout</div>
+          <div class="topdown">
+            <svg class="wire-svg" viewBox="0 0 100 75" preserveAspectRatio="none">
+              <!-- I2C bus lines - blue -->
+              <line x1="22" y1="26" x2="50" y2="50" stroke="#2980b9" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="22" y1="45" x2="50" y2="50" stroke="#2980b9" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="22" y1="72" x2="50" y2="50" stroke="#2980b9" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="78" y1="26" x2="50" y2="50" stroke="#2980b9" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="78" y1="45" x2="50" y2="50" stroke="#c0392b" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="78" y1="72" x2="50" y2="50" stroke="#8b5cf6" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="50" y1="10" x2="50" y2="50" stroke="#333" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <!-- SPI lines - green -->
+              <line x1="50" y1="67" x2="50" y2="50" stroke="#27ae60" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="38" y1="88" x2="50" y2="50" stroke="#27ae60" stroke-width="0.8" stroke-dasharray="2,1"/>
+              <line x1="72" y1="88" x2="50" y2="50" stroke="#2980b9" stroke-width="0.8" stroke-dasharray="2,1"/>
+            </svg>
+            <div class="td-comp td-esp">ESP32<br><span style="font-size:6px;opacity:0.7;">CENTER</span></div>
+            <div class="td-comp td-sht">SHT40</div>
+            <div class="td-comp td-mpu">MPU<br>6050</div>
+            <div class="td-comp td-tsl">TSL<br>2591</div>
+            <div class="td-comp td-bmp">BMP280</div>
+            <div class="td-comp td-mq2">MQ-2</div>
+            <div class="td-comp td-max">MAX<br>30102</div>
+            <div class="td-comp td-oled">OLED</div>
+            <div class="td-comp td-rfid">RFID RC522</div>
+            <div class="td-comp td-sd">SD</div>
+            <div class="td-comp td-ina">INA</div>
+            <div class="td-leds">
+              <div class="td-led" style="background:#e74c3c;"></div>
+              <div class="td-led" style="background:#f1c40f;"></div>
+              <div class="td-led" style="background:#27ae60;"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:4px;font-size:9px;font-family:'Space Mono';color:var(--muted);">
+              <div style="width:20px;height:2px;background:#2980b9;border-top:1px dashed #2980b9;"></div> I2C Bus
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:9px;font-family:'Space Mono';color:var(--muted);">
+              <div style="width:20px;height:2px;background:#27ae60;border-top:1px dashed #27ae60;"></div> SPI Bus
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;font-size:9px;font-family:'Space Mono';color:var(--muted);">
+              <div style="width:20px;height:2px;background:#8b5cf6;border-top:1px dashed #8b5cf6;"></div> Unique Feature
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="build-step">
+      <div class="step-num"><div class="step-circle">4</div></div>
+      <div class="step-content">
+        <div class="step-tag">Day 2 — Hardware</div>
+        <div class="step-title">Add Output Components</div>
+        <div class="step-body">Mount OLED display on the front inner face of the lid (so it's visible when lid is open). Attach RGB LEDs and buzzer near the OLED. These are your physical alert indicators. Drill tiny holes through the lid edge so LEDs are visible from outside too.</div>
+        <div class="step-tips">
+          <div class="tip"><span class="tip-icon">💡</span>Hot glue the OLED module directly to the inner lid face. The screen should face inward and be readable when lid is open at 90°.</div>
+          <div class="tip"><span class="tip-icon">🔴</span>For LEDs visible from outside: push them through small holes in the lid edge, secure with hot glue from inside.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="build-step">
+      <div class="step-num"><div class="step-circle">5</div></div>
+      <div class="step-content">
+        <div class="step-tag">Day 2-3 — Firmware</div>
+        <div class="step-title">Flash ESP32 Firmware</div>
+        <div class="step-body">Write and upload firmware in this order: (1) Basic sensor reads — confirm all sensors respond on I2C scan. (2) Add MQTT publish. (3) Add SD card logging. (4) Add RFID profile loading. (5) Add alert logic + LED/buzzer control. (6) Add FFT tamper detection. Test each layer before adding the next.</div>
+        <div class="step-tips">
+          <div class="tip"><span class="tip-icon">🖥️</span>Run <code style="background:#eee;padding:1px 4px;border-radius:2px;">i2c_scanner</code> sketch first to confirm all I2C addresses are detected — this catches wiring errors early.</div>
+          <div class="tip"><span class="tip-icon">📡</span>Use HiveMQ WebSocket client to test MQTT messages before building the dashboard.</div>
+          <div class="tip"><span class="tip-icon">💾</span>Test SD card separately with a simple write/read sketch before integrating.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="build-step">
+      <div class="step-num"><div class="step-circle">6</div></div>
+      <div class="step-content">
+        <div class="step-tag">Day 3-4 — Software</div>
+        <div class="step-title">Build the Dashboard</div>
+        <div class="step-body">React + Firebase. Start with a single live temperature chart. Then add all sensors. Then add the safety score gauge. Then alert history panel. Then trip report PDF export. Driver alert tablet screen is a separate simple HTML page on a second device connected to same Firebase.</div>
+        <div class="step-tips">
+          <div class="tip"><span class="tip-icon">📊</span>Use Chart.js or Recharts for sensor graphs. Firebase <code style="background:#eee;padding:1px 4px;border-radius:2px;">onValue</code> listener gives you real-time updates without polling.</div>
+          <div class="tip"><span class="tip-icon">📱</span>Driver alert screen: literally just a big-font HTML page on a tablet showing current status. Keep it simple — RED/YELLOW/GREEN + the alert message.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="build-step">
+      <div class="step-num"><div class="step-circle">7</div></div>
+      <div class="step-content">
+        <div class="step-tag">Day 4-5 — Demo Prep</div>
+        <div class="step-title">Set Up Demo Scenarios</div>
+        <div class="step-body">Prepare 4 demo scenarios that you'll run live: (1) Temperature rise — blow hot air from hair dryer through inlet hose. (2) Humidity rise — moist towel near inlet or spray water mist. (3) Light exposure — open the lid. (4) Vibration/tamper — shake the box sharply. Each should trigger alerts on dashboard within 5-10 seconds.</div>
+        <div class="step-tips">
+          <div class="tip"><span class="tip-icon">🌡️</span>Rehearse the demo flow 3–4 times. Know exactly when each alert triggers and what to say at that moment.</div>
+          <div class="tip"><span class="tip-icon">📝</span>Have a printed "medicine profile" card showing the RFID tag ID and its thresholds — visual prop that helps explain the RFID feature.</div>
+          <div class="tip"><span class="tip-icon">🔋</span>Run fully on power bank during demo. No laptop charger cables running to the box — looks cleaner.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============== PLACEMENT ============== -->
+<div id="tab-placement" class="panel">
+  <div class="sec-label">Component Placement Zones</div>
+  <div style="background:var(--cream);border:2px solid var(--ink);border-radius:4px;padding:20px;margin-bottom:24px;">
+    <div style="font-family:'Space Mono';font-size:10px;color:var(--muted);margin-bottom:12px;letter-spacing:2px;text-transform:uppercase;">Box Interior — 40×30×25 cm Thermocol</div>
+    <div style="position:relative;width:100%;max-width:600px;height:300px;background:#c8e6da;border:3px solid var(--ink);border-radius:8px;margin:0 auto;">
+      <!-- walls -->
+      <div style="position:absolute;left:0;top:0;width:8%;height:100%;background:repeating-linear-gradient(45deg,#8ab8a8,#8ab8a8 2px,#c8e6da 2px,#c8e6da 6px);border-right:2px solid var(--ink);"></div>
+      <div style="position:absolute;right:0;top:0;width:8%;height:100%;background:repeating-linear-gradient(45deg,#8ab8a8,#8ab8a8 2px,#c8e6da 2px,#c8e6da 6px);border-left:2px solid var(--ink);"></div>
+
+      <!-- Zone A - left wall sensors -->
+      <div style="position:absolute;left:8%;top:10%;width:20%;height:80%;background:rgba(45,106,79,0.1);border:2px dashed var(--accent2);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+        <div style="font-family:'Space Mono';font-size:7px;font-weight:700;color:var(--accent2);letter-spacing:1px;text-align:center;">ZONE A<br>I2C SENSORS</div>
+        <div style="background:var(--accent2);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">SHT40</div>
+        <div style="background:var(--accent2);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">MPU6050</div>
+        <div style="background:var(--accent2);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">TSL2591</div>
+      </div>
+
+      <!-- Zone B - center bottom -->
+      <div style="position:absolute;left:30%;right:30%;bottom:5%;height:45%;background:rgba(29,53,87,0.1);border:2px dashed var(--accent3);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+        <div style="font-family:'Space Mono';font-size:7px;font-weight:700;color:var(--accent3);letter-spacing:1px;text-align:center;">ZONE B<br>CONTROLLER</div>
+        <div style="background:var(--accent3);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">ESP32</div>
+        <div style="background:var(--accent3);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">BREADBOARD</div>
+        <div style="background:#555;color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">SD CARD</div>
+      </div>
+
+      <!-- Zone C - right wall -->
+      <div style="position:absolute;right:8%;top:10%;width:20%;height:80%;background:rgba(232,93,47,0.1);border:2px dashed var(--accent);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+        <div style="font-family:'Space Mono';font-size:7px;font-weight:700;color:var(--accent);letter-spacing:1px;text-align:center;">ZONE C<br>MORE SENSORS</div>
+        <div style="background:var(--accent);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">BMP280</div>
+        <div style="background:var(--accent);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">MQ-2</div>
+        <div style="background:var(--accent);color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">INA219</div>
+      </div>
+
+      <!-- Zone D - top center -->
+      <div style="position:absolute;left:30%;right:30%;top:5%;height:38%;background:rgba(139,92,246,0.1);border:2px dashed #8b5cf6;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;">
+        <div style="font-family:'Space Mono';font-size:7px;font-weight:700;color:#8b5cf6;letter-spacing:1px;text-align:center;">ZONE D<br>UNIQUE</div>
+        <div style="background:#8b5cf6;color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">RC522 RFID</div>
+        <div style="background:#8b5cf6;color:#fff;padding:3px 6px;border-radius:2px;font-family:'Space Mono';font-size:7px;text-align:center;">MAX30102</div>
+      </div>
+
+      <!-- air inlet arrow -->
+      <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-family:'Space Mono';font-size:8px;font-weight:700;color:var(--accent);text-align:center;">▼ AIR INLET HOLE (top)</div>
+    </div>
+  </div>
+
+  <div class="placement-grid">
+    <div class="place-card">
+      <div class="place-card-top"><div class="place-zone zone-A"></div>Zone A — Left Inner Wall</div>
+      <div class="place-card-body"><strong>SHT40, MPU6050, TSL2591</strong><br><br>Mount all three vertically with 2cm spacing. SHT40 at center height for best ambient reading. TSL2591 should face the lid direction. MPU6050 can be anywhere on the wall — it reads the whole box vibration regardless.</div>
+    </div>
+    <div class="place-card">
+      <div class="place-card-top"><div class="place-zone zone-B"></div>Zone B — Box Floor Center</div>
+      <div class="place-card-body"><strong>ESP32, Breadboard, SD Card</strong><br><br>Central position keeps wire lengths minimal to all wall sensors. Breadboard flat on the floor. ESP32 plugged into breadboard. SD card module on breadboard. Power bank sits beside the breadboard.</div>
+    </div>
+    <div class="place-card">
+      <div class="place-card-top"><div class="place-zone zone-C"></div>Zone C — Right Inner Wall</div>
+      <div class="place-card-body"><strong>BMP280, MQ-2, INA219</strong><br><br>BMP280 at top (pressure is uniform in box anyway). MQ-2 at mid-height. INA219 near where the cooler power cable runs — it's inline with the cooler's power supply wire, not just sitting there.</div>
+    </div>
+    <div class="place-card">
+      <div class="place-card-top"><div class="place-zone zone-D"></div>Zone D — Top Center (near hole)</div>
+      <div class="place-card-body"><strong>RC522 RFID, MAX30102</strong><br><br>RFID antenna should be near or flush with the small hole cut at the top of the box so tags can be scanned from outside. MAX30102 near top if monitoring container O₂ — or mount externally with a finger clip for driver HRV monitoring.</div>
+    </div>
+    <div class="place-card">
+      <div class="place-card-top"><div class="place-zone zone-E"></div>Zone E — Lid Inner Face</div>
+      <div class="place-card-body"><strong>OLED, RGB LEDs, Buzzer</strong><br><br>OLED faces inward. When lid is opened at demo, OLED is immediately visible. LEDs pushed through small holes at lid edge — visible from outside when box is closed. Buzzer mounted flat on lid inner face.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============== BUY ============== -->
+<div id="tab-buy" class="panel">
+  <div class="sec-label">Where to Buy — India</div>
+  <table class="buy-table">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Search Term</th>
+        <th>Best Source</th>
+        <th>Approx Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="comp-name">ESP32 DevKit V1</td><td><span class="search-tag">ESP32 WROOM DevKit</span></td><td class="buy-from">Robu.in / Quartzcomponents / Amazon</td><td class="price-col">₹350–450</td></tr>
+      <tr><td class="comp-name">SHT40 Sensor</td><td><span class="search-tag">SHT40 breakout Adafruit</span></td><td class="buy-from">Robu.in / Adafruit (international)</td><td class="price-col">₹280–380</td></tr>
+      <tr><td class="comp-name">MPU6050</td><td><span class="search-tag">MPU6050 GY-521 module</span></td><td class="buy-from">Robu.in / SP Electronics / Amazon</td><td class="price-col">₹120–180</td></tr>
+      <tr><td class="comp-name">TSL2591</td><td><span class="search-tag">TSL2591 light sensor module</span></td><td class="buy-from">Robu.in / Amazon India</td><td class="price-col">₹220–300</td></tr>
+      <tr><td class="comp-name">BMP280</td><td><span class="search-tag">BMP280 barometric pressure I2C</span></td><td class="buy-from">Robu.in / Quartzcomponents</td><td class="price-col">₹100–160</td></tr>
+      <tr><td class="comp-name">MQ-2 Gas Sensor</td><td><span class="search-tag">MQ-2 smoke sensor module</span></td><td class="buy-from">Robu.in / SP Electronics</td><td class="price-col">₹80–130</td></tr>
+      <tr><td class="comp-name">MAX30102</td><td><span class="search-tag">MAX30102 pulse oximeter module</span></td><td class="buy-from">Robu.in / Amazon India</td><td class="price-col">₹200–300</td></tr>
+      <tr><td class="comp-name">RC522 RFID Reader</td><td><span class="search-tag">MFRC522 RFID kit with tags</span></td><td class="buy-from">Robu.in / SP Electronics / Flipkart</td><td class="price-col">₹120–180</td></tr>
+      <tr><td class="comp-name">INA219</td><td><span class="search-tag">INA219 current sensor module</span></td><td class="buy-from">Robu.in / Amazon India</td><td class="price-col">₹150–220</td></tr>
+      <tr><td class="comp-name">SD Card Module</td><td><span class="search-tag">SPI SD card module Arduino</span></td><td class="buy-from">SP Electronics / Robu.in</td><td class="price-col">₹60–100</td></tr>
+      <tr><td class="comp-name">MicroSD Card 8GB</td><td><span class="search-tag">SanDisk 8GB microSD</span></td><td class="buy-from">Any electronics shop / Amazon</td><td class="price-col">₹120–180</td></tr>
+      <tr><td class="comp-name">OLED 0.96" I2C</td><td><span class="search-tag">SSD1306 OLED 0.96 I2C</span></td><td class="buy-from">Robu.in / SP Electronics</td><td class="price-col">₹120–180</td></tr>
+      <tr><td class="comp-name">RGB LEDs (x5)</td><td><span class="search-tag">5mm RGB LED common cathode</span></td><td class="buy-from">SP Electronics / local electronics</td><td class="price-col">₹20–40</td></tr>
+      <tr><td class="comp-name">Buzzer Module</td><td><span class="search-tag">active buzzer 5V module</span></td><td class="buy-from">SP Electronics / Robu.in</td><td class="price-col">₹30–60</td></tr>
+      <tr><td class="comp-name">Breadboard (large)</td><td><span class="search-tag">830 point breadboard</span></td><td class="buy-from">SP Electronics / Amazon</td><td class="price-col">₹60–100</td></tr>
+      <tr><td class="comp-name">Jumper Wires (M-M, M-F)</td><td><span class="search-tag">jumper wire kit 40pcs M-M M-F</span></td><td class="buy-from">SP Electronics / Robu.in</td><td class="price-col">₹60–100</td></tr>
+      <tr><td class="comp-name">Power Bank 10000mAh</td><td><span class="search-tag">power bank 10000mAh</span></td><td class="buy-from">Any — Mi / Ambrane / Amazon basics</td><td class="price-col">₹500–700</td></tr>
+      <tr><td class="comp-name">Thermocol Box</td><td><span class="search-tag">thermocol box medicine transport</span></td><td class="buy-from">Vegetable market / fish shop / packaging supplier</td><td class="price-col">₹80–150</td></tr>
+      <tr><td class="comp-name">Double-sided foam tape</td><td><span class="search-tag">double sided foam tape 3M</span></td><td class="buy-from">Stationery shop / Amazon</td><td class="price-col">₹40–80</td></tr>
+      <tr><td class="comp-name">Hot glue gun</td><td><span class="search-tag">hot glue gun mini</span></td><td class="buy-from">Any stationery / hardware shop</td><td class="price-col">₹100–150</td></tr>
+      <tr class="total-row">
+        <td colspan="3"><strong>TOTAL ESTIMATED</strong></td>
+        <td class="price-col">₹ ~3,000–3,500</td>
+      </tr>
+    </tbody>
+  </table>
+  <div style="margin-top:20px;background:var(--cream);border:2px solid var(--ink);border-radius:4px;padding:16px 20px;font-size:12px;line-height:1.8;color:var(--muted);">
+    <strong style="color:var(--ink);">Pro tip:</strong> Go to your local SP Electronics or equivalent electronics market (Lamington Road Mumbai / Ritchie Street Chennai / SP Road Bangalore / Chandni Chowk Delhi) and buy everything in one trip. Way cheaper than online and you can verify the components work on the spot. Bring a USB power bank and test the ESP32 in the shop.
+  </div>
+</div>
+
+</div>
+
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
