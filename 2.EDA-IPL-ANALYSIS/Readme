@@ -1,0 +1,11 @@
+# IPL Data Analysis
+
+Exploratory data analysis on IPL cricket match data covering player and team performance.
+
+## What I did
+- Analyzed team win rates and performance trends
+- Explored top batsmen and bowlers
+- Visualized match outcomes and toss decisions
+
+## Libraries
+pandas, matplotlib, seaborn
