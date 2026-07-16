@@ -95,17 +95,7 @@ Key Concepts:
 
 ✅ Ensemble Learning
 
-🔜 Support Vector Machines
 
-🔜 K-Nearest Neighbors
-
-🔜 Naive Bayes
-
-🔜 Clustering
-
-🔜 Dimensionality Reduction (PCA)
-
-🔜 Neural Networks
 
 ---
 
